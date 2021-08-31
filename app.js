@@ -17,6 +17,8 @@ mongoose.connect(process.env.MONGO_URI, {
   });
 
 const app = express();
+const uri = process.env.MONGO_URI;
+console.log(uri)
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); //optional
