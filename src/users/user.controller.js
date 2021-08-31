@@ -1,3 +1,4 @@
+const { options } = require("joi");
 const Joi = require("joi");
 require("dotenv").config();
 const { v4: uuid } = require("uuid");
