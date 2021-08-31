@@ -3,8 +3,6 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 require("dotenv").config();
 
-const PORT = 5000;
-
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -17,7 +15,6 @@ mongoose.connect(process.env.MONGO_URI, {
   });
 
 const app = express();
-const uri = process.env.MONGO_URI;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); //optional
@@ -31,6 +28,7 @@ app.get("/ping", (req, res) => {
 
 app.use("/users", require("./routes/users"));
 
-app.listen(PORT, () => {
-  console.log("Server started listening on PORT : " + PORT);
+const port = process.env.PORT || 5000
+app.listen(port, () => {
+  console.log("Server started listening on PORT : " + port);
 });
