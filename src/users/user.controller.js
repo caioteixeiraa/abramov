@@ -4,6 +4,7 @@ require("dotenv").config();
 const { v4: uuid } = require("uuid");
 
 const { sendEmail } = require("./helpers/mailer");
+const { generateJwt } = require("./helpers/generateJwt")
 const User = require("./user.model");
 
 //Validate user schema
@@ -57,6 +58,7 @@ exports.Signup = async (req, res) => {
         message: "Couldn't send verification email.",
       });
     }
+
     result.value.emailToken = code;
     result.value.emailTokenExpires = new Date(expiry);
     const newUser = new User(result.value);
@@ -82,7 +84,7 @@ exports.Login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         error: true,
-        message: "Cannot authorize user.",
+        message: "Cannot authorize user",
       });
     }
 
@@ -114,12 +116,23 @@ exports.Login = async (req, res) => {
         message: "Invalid credentials",
       });
     }
+
+    const { error, token } = await generateJwt(user.email, user.userId);
+    if (error) {
+      return res.status(500).json({
+        error: true,
+        message: "Couldn't create access token. Please try again later",
+      });
+    }
+    user.accessToken = token;
+
     await user.save();
     
     //Success
     return res.send({
       success: true,
       message: "User logged in successfully",
+      accessToken: token,
      });
   } catch (err) {
     console.error("Login error", err);
