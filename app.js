@@ -3,9 +3,6 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 require("dotenv").config();
 
-console.log(process.env.MONGO_URI)
-console.log(process.env.SENDGRID_API_KEY)
-
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
