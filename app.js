@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const cors = require('cors')
 require("dotenv").config();
 
 mongoose.connect(process.env.MONGO_URI, {
@@ -18,6 +19,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); //optional
+app.use(cors())
 
 app.get("/ping", (req, res) => {
   return res.send({

@@ -9,13 +9,14 @@ async function sendEmail(email, code) {
     var toAddress = email;
     const smtpUsername = "apikey";
     const smtpPassword = process.env.SENDGRID_API_KEY;
-    var subject = "Verify your email";
+    var subject = "Verifique seu e-mail :)";
 
     // The body of the email for recipients
     var body_html = `<!DOCTYPE> 
     <html>
       <body>
-        <p>Your authentication code is : </p> <b>${code}</b>
+        <h2>Obrigado por se cadastrar!</h2>
+        <p>Seu código de confirmação é: </p> <b>${code}</b>
       </body>
     </html>`;
 
