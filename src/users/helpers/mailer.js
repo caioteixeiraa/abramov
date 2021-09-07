@@ -1,7 +1,7 @@
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
-async function sendEmail(email, code) {
+async function sendEmail(email, code, type) {
   try {
     const smtpEndpoint = "smtp.sendgrid.net";
     const port = 465;
@@ -9,29 +9,36 @@ async function sendEmail(email, code) {
     var toAddress = email;
     const smtpUsername = "apikey";
     const smtpPassword = process.env.SENDGRID_API_KEY;
-    var subject = "Verifique seu e-mail :)";
+    
+    if (type === 'register') {
+      var subject = "Verifique seu e-mail :)";
+      var body_html = `<!DOCTYPE> 
+      <html>
+        <body>
+          <h2>Obrigado por se cadastrar!</h2>
+          <p>Seu código de confirmação é: </p> <b>${code}</b>
+        </body>
+      </html>`;
+    } else if (type === 'resetPassword') {
+      var subject = "Código para alterar senha";
+      var body_html = `<!DOCTYPE> 
+      <html>
+        <body>
+          <p>Seu código para definição da nova senha é: </p> <b>${code}</b>
+        </body>
+      </html>`;
+    }
 
-    // The body of the email for recipients
-    var body_html = `<!DOCTYPE> 
-    <html>
-      <body>
-        <h2>Obrigado por se cadastrar!</h2>
-        <p>Seu código de confirmação é: </p> <b>${code}</b>
-      </body>
-    </html>`;
-
-    // Create the SMTP transport.
     let transporter = nodemailer.createTransport({
       host: smtpEndpoint,
       port: port,
-      secure: true, // true for 465, false for other ports
+      secure: true,
       auth: {
         user: smtpUsername,
         pass: smtpPassword,
       },
     });
 
-    // Specify the fields in the email.
     let mailOptions = {
       from: senderAddress,
       to: toAddress,
