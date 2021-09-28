@@ -6,6 +6,8 @@ const { v4: uuid } = require("uuid");
 const { sendEmail } = require("./helpers/mailer");
 const { generateJwt } = require("./helpers/generateJwt")
 const User = require("./user.model");
+const { getTokenData } = require("../helpers/authenticator");
+const { db } = require("../mentors/mentor.model");
 
 const userSchema = Joi.object().keys({
   email: Joi.string().email({ minDomainSegments: 2 }),
@@ -125,6 +127,7 @@ exports.Login = async (req, res) => {
       success: true,
       message: "User logged in successfully",
       accessToken: token,
+      id: user.userId
      });
   } catch (err) {
     console.error("Login error", err);
