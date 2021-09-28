@@ -7,5 +7,6 @@ const AuthController = require("../src/mentees/mentee.controller");
 router.post("/create", cleanBody, AuthController.Create);
 router.get("/getAllMentees", cleanBody, AuthController.GetAllMentees);
 router.get("/getMenteeById", cleanBody, AuthController.GetMenteeById);
+router.put("/update", cleanBody, AuthController.Update)
 
 module.exports = router;

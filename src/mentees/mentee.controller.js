@@ -122,3 +122,49 @@ exports.GetMenteeById = async (req, res) => {
     })
   }
 }
+
+exports.Update = async (req, res) => {
+  const token = req.headers.authorization
+  const tokenData = getTokenData(token)
+
+  if (!token || !tokenData) {
+    return res.status(401).send({
+      error: true,
+      message: 'Not authenticated',
+    });
+  }
+
+  try {
+    req.body.userId = req.query.userId
+    const result = menteeSchema.validate(req.body)
+    const collection = db.collection('mentees')
+    collection.updateOne({ "userId": req.query.userId }, {
+      $set: {
+        "name": result.value.name,
+        "email": result.value.email,
+        "state": result.value.state,
+        "age": result.value.age,
+        "linkedin": result.value.linkedin,
+        "github": result.value.github,
+        "skills": result.value.skills,
+        "interests": result.value.interests,
+      }
+    }).then(() => {
+      return res.status(200).send({
+        error: false,
+        message: "Updated successfully"
+      })
+    })
+    .catch(() => {
+      return res.status(500).send({
+        error: true,
+        message: "Couldn't update mentee"
+      })
+    })
+  } catch {
+    return res.status(500).send({
+      error: true,
+      message: "Couldn't update mentee"
+    })
+  }
+}
