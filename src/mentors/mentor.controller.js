@@ -61,6 +61,16 @@ exports.Create = async (req, res) => {
 }
 
 exports.GetAllMentors = async (req, res) => {
+  const token = req.headers.authorization
+  const tokenData = getTokenData(token)
+
+  if (!token || !tokenData) {
+    return res.status(401).json({
+      error: true,
+      message: 'Not authenticated',
+    });
+  }
+  
   try {
     const collection = db.collection('mentors')
     collection.find({}).toArray((err, result) => {
