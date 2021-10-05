@@ -31,6 +31,7 @@ app.get("/ping", (req, res) => {
 app.use("/users", require("./routes/users"));
 app.use("/mentees", require("./routes/mentees"));
 app.use("/mentors", require("./routes/mentors"));
+app.use("/connections", require("./routes/connections"));
 
 const port = process.env.PORT || 5000
 app.listen(port, () => {
