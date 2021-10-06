@@ -30,6 +30,13 @@ exports.Connect = async (req, res) => {
     userId: req.query.userId,
   });
 
+  if (!user) {
+    return res.status(400).json({
+      error: true,
+      message: "Admin not found",
+    });
+  }
+
   if (user.role !== "admin") {
     return res.status(409).json({
       error: true,
