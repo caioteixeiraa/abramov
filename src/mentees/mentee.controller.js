@@ -5,6 +5,7 @@ const { v4: uuid } = require("uuid");
 const Mentee = require("./mentee.model");
 const { db } = require("../mentees/mentee.model");
 const { getTokenData } = require("../helpers/authenticator");
+const { roles } = require('../roles/roles')
 
 const menteeSchema = Joi.object().keys({
   name: Joi.string().required(),
@@ -72,13 +73,26 @@ exports.GetAllMentees = async (req, res) => {
   }
 
   try {
-    const collection = db.collection('mentees')
-    collection.find({}).toArray((err, result) => {
+    const users = db.collection('users')
+    users.find({ "userId": req.query.userId }).toArray((err, result) => {
       if (err) {
-        console.log(err)
-        res.status(500).send(err)
+        return res.status(500).json({err})
       }
-      return res.status(200).send(result)
+        const permission = roles.can(result[0].role).readAny('mentee')
+        if (!permission.granted) {
+          return res.status(403).json({
+            error: true,
+            message: 'Permission not granted'
+          })
+        } else {
+          const collection = db.collection('mentees')
+          collection.find({}).toArray((err, result) => {
+            if (err) {
+              res.status(500).send(err)
+            }
+            return res.status(200).send(result)
+          })
+        }
     })
   } catch {
     return res.send(500).json({

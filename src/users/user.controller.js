@@ -60,6 +60,7 @@ exports.Signup = async (req, res) => {
 
     result.value.emailToken = code;
     result.value.emailTokenExpires = new Date(expiry);
+    result.value.role = 'basic'
     const newUser = new User(result.value);
     await newUser.save();
 

@@ -7,6 +7,7 @@ const { sendEmail } = require("./helpers/mailerConnection");
 const { getTokenData } = require("../helpers/authenticator");
 const { db } = require("../mentors/mentor.model");
 const Connection = require("./connection.model");
+const { roles } = require('../roles/roles')
 
 const connectionSchema = Joi.object().keys({
   emailMentee: Joi.string().email({ minDomainSegments: 2 }),
@@ -23,57 +24,62 @@ exports.Connect = async (req, res) => {
       message: 'Not authenticated',
     });
   }
-
-  const users = db.collection('users')
-
-  const user = await users.findOne({
-    userId: req.query.userId,
-  });
-
-  if (!user) {
-    return res.status(400).json({
-      error: true,
-      message: "Admin not found",
-    });
-  }
-
-  if (user.role !== "admin") {
-    return res.status(409).json({
-      error: true,
-      message: "Not allowed",
-    });
-  }
-
+  
   try {
-    const result = connectionSchema.validate(req.body);
-    if (result.error) {
-      console.log(result.error.message);
-      return res.status(400).json({
-        error: true,
-        status: 400,
-        message: result.error.message,
-      });
-    }
+    const users = db.collection('users')
+    users.find({ "userId": req.query.userId }).toArray(async (err, result) => {
+      if (err) {
+        return res.status(500).json(err)
+      }
+      
+      const permission = roles.can(result[0].role).createAny('connection')
+      if (!permission.granted) {
+        return res.status(403).json({
+          error: true,
+          message: "Permission not granted",
+        });
+      } else {
 
-    const sendCode = await sendEmail(result.value.emailMentee, result.value.emailMentor);
+        const result = connectionSchema.validate(req.body);
+        if (result.error) {
+          console.log(result.error.message);
+          return res.status(400).json({
+            error: true,
+            status: 400,
+            message: result.error.message,
+          });
+        }
+    
+        const mentee = await db.collection('mentees').findOne({ email: req.body.emailMentee })
+        const mentor = await db.collection('mentors').findOne({ email: req.body.emailMentor })
+    
+        const sendEmailConnection = await sendEmail(mentee, mentor);
+    
+        if (sendEmailConnection.error) {
+          return res.status(500).json({
+            error: true,
+            message: "Couldn't send email.",
+          });
+        }
+    
+        const id = uuid();
+        result.value.connectionId = id;
+    
+        const newConnection = new Connection(result.value);
+        await newConnection.save((err) => {
+          if (err) {
+            return res.status(500).json({ err: err.message })
+          }
+          else {
+            return res.status(200).json({
+              success: true,
+              message: "Connection succeed!",
+            });
+          }
+        });
+      }
+    })
 
-    if (sendCode.error) {
-      return res.status(500).json({
-        error: true,
-        message: "Couldn't send email.",
-      });
-    }
-
-    const id = uuid();
-    result.value.connectionId = id;
-
-    const newConnection = new Connection(result.value);
-    await newConnection.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Connection succeed!",
-    });
   } catch (error) {
     console.error("connection-error", error);
     return res.status(500).json({

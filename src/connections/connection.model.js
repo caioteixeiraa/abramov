@@ -4,8 +4,8 @@ const Schema = mongoose.Schema;
 const connectionSchema = new Schema(
   {
     connectionId: { type: String, unique: true, required: true },
-    emailMentee: { type: String, required: true, unique: true },
-    emailMentor: { type: String, required: true, unique: true },
+    emailMentee: { type: String, required: true },
+    emailMentor: { type: String, required: true },
   },
   {
     timestamps: {

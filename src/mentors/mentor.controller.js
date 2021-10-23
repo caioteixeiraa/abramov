@@ -1,3 +1,4 @@
+const { AccessControl } = require("accesscontrol");
 const { options } = require("joi");
 const Joi = require("joi");
 const { Mongoose } = require("mongoose");
@@ -5,6 +6,8 @@ require("dotenv").config();
 const { v4: uuid } = require("uuid");
 const { getTokenData } = require("../helpers/authenticator");
 const { db } = require("../mentors/mentor.model");
+const { collection } = require("../users/user.model");
+const { roles } = require('../roles/roles')
 
 const Mentor = require("./mentor.model");
 
@@ -72,15 +75,29 @@ exports.GetAllMentors = async (req, res) => {
   }
   
   try {
-    const collection = db.collection('mentors')
-    collection.find({}).toArray((err, result) => {
+    const users = db.collection('users')
+    users.find({ "userId": req.query.userId }).toArray((err, result) => {
       if (err) {
-        res.status(500).send(err)
+        return res.status(500).json({err})
       }
-      return res.status(200).send(result)
+        const permission = roles.can(result[0].role).readAny('mentor')
+        if (!permission.granted) {
+          return res.status(403).json({
+            error: true,
+            message: 'Permission not granted'
+          })
+        } else {
+          const collection = db.collection('mentors')
+          collection.find({}).toArray((err, result) => {
+            if (err) {
+              res.status(500).send(err)
+            }
+            return res.status(200).send(result)
+          })
+        }
     })
   } catch {
-    return res.status(500).send({
+    return res.status(500).json({
       error: true,
       message: "Couldn't get mentors"
     })
