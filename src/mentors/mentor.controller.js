@@ -8,6 +8,7 @@ const { getTokenData } = require("../helpers/authenticator");
 const { db } = require("../mentors/mentor.model");
 const { collection } = require("../users/user.model");
 const { roles } = require('../roles/roles')
+const { sendEmailProfileCreation } = require("../helpers/mailerProfileCreation");
 
 const Mentor = require("./mentor.model");
 
@@ -49,6 +50,11 @@ exports.Create = async (req, res) => {
     result.value.active = true
     const newMentor = new Mentor(result.value);
     await newMentor.save()
+    const sentEmail = await sendEmailProfileCreation(result.value.email, result.value)
+
+    if (sentEmail.error) {
+      console.warn("Couldn't send profile creation e-mail")
+    }
 
     return res.status(200).send({
       error: false,
@@ -185,6 +191,40 @@ exports.Update = async (req, res) => {
     return res.status(500).send({
       error: true,
       message: "Couldn't update mentor"
+    })
+  }
+}
+
+exports.Delete = async (req, res) => {
+  const token = req.headers.authorization
+  const tokenData = getTokenData(token)
+
+  if (!token || !tokenData) {
+    return res.status(401).send({
+      error: true,
+      message: 'Not authenticated',
+    });
+  }
+
+  try {
+    const collection = db.collection('mentors')
+    collection.deleteOne({ "userId": req.query.userId })
+    .then(() => {
+      return res.status(200).send({
+        error: false,
+        message: "Deleted successfully"
+      })
+    })
+    .catch(() => {
+      return res.status(500).send({
+        error: true,
+        message: "Couldn't delete mentor"
+      })
+    })
+  } catch {
+    return res.status(500).send({
+      error: true,
+      message: "Couldn't delete mentor"
     })
   }
 }

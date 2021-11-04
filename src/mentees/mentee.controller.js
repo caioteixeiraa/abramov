@@ -5,7 +5,8 @@ const { v4: uuid } = require("uuid");
 const Mentee = require("./mentee.model");
 const { db } = require("../mentees/mentee.model");
 const { getTokenData } = require("../helpers/authenticator");
-const { roles } = require('../roles/roles')
+const { roles } = require('../roles/roles');
+const { sendEmailProfileCreation } = require("../helpers/mailerProfileCreation");
 
 const menteeSchema = Joi.object().keys({
   name: Joi.string().required(),
@@ -47,6 +48,11 @@ exports.Create = async (req, res) => {
 
     const newMentee = new Mentee(result.value);
     await newMentee.save()
+    const sentEmail = await sendEmailProfileCreation(result.value.email, result.value)
+
+    if (sentEmail.error) {
+      console.warn("Couldn't send profile creation e-mail")
+    }
 
     return res.status(200).json({
       error: false,
@@ -179,6 +185,40 @@ exports.Update = async (req, res) => {
     return res.status(500).send({
       error: true,
       message: "Couldn't update mentee"
+    })
+  }
+}
+
+exports.Delete = async (req, res) => {
+  const token = req.headers.authorization
+  const tokenData = getTokenData(token)
+
+  if (!token || !tokenData) {
+    return res.status(401).send({
+      error: true,
+      message: 'Not authenticated',
+    });
+  }
+
+  try {
+    const collection = db.collection('mentees')
+    collection.deleteOne({ "userId": req.query.userId })
+    .then(() => {
+      return res.status(200).send({
+        error: false,
+        message: "Deleted successfully"
+      })
+    })
+    .catch(() => {
+      return res.status(500).send({
+        error: true,
+        message: "Couldn't delete mentee"
+      })
+    })
+  } catch {
+    return res.status(500).send({
+      error: true,
+      message: "Couldn't delete mentee"
     })
   }
 }
