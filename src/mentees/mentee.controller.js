@@ -111,7 +111,6 @@ exports.GetAllMentees = async (req, res) => {
 exports.GetMenteeById = async (req, res) => {
   const token = req.headers.authorization
   const tokenData = getTokenData(token)
-
   if (!token || !tokenData) {
     return res.status(401).json({
       error: true,
@@ -133,6 +132,8 @@ exports.GetMenteeById = async (req, res) => {
         delete result[0].__v
         delete result[0].active
         return res.status(200).send(result)
+      } else {
+        return res.status(500).send({error: true, message: "couldn't find mentor"})
       }
     })
   } catch {

@@ -23,7 +23,8 @@ const mentorSchema = Joi.object().keys({
   skills: Joi.array().required(),
   interests: Joi.array().required(),
   marketTime: Joi.string().required(),
-  company: Joi.string()
+  company: Joi.string(),
+  numberOfConnections: Joi.number().required()
 });
 
 exports.Create = async (req, res) => {
@@ -136,7 +137,7 @@ exports.GetMentorById = async (req, res) => {
         delete result[0].active
         return res.status(200).send(result)
       } else {
-        return res.status(400).send({error: true, message: "couldn't find mentor"})
+        return res.status(500).send({error: true, message: "couldn't find mentor"})
       }
     })
   } catch {

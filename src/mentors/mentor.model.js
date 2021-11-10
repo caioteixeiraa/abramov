@@ -15,6 +15,7 @@ const mentorSchema = new Schema(
     interests: { type: [String], required: false},
     marketTime: { type: String, required: true },
     company: { type: String, required: false },
+    numberOfConnections: { type: Number, required: true }
   },
   {
     timestamps: {

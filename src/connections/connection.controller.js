@@ -52,7 +52,14 @@ exports.Connect = async (req, res) => {
     
         const mentee = await db.collection('mentees').findOne({ email: req.body.emailMentee })
         const mentor = await db.collection('mentors').findOne({ email: req.body.emailMentor })
-    
+        
+        if (mentor.numberOfConnections === 0) {
+          return res.status(400).json({
+            error: true,
+            message: "Number of mentor connections exceeded.",
+          });
+        }
+        
         const sendEmailConnection = await sendEmail(mentee, mentor);
     
         if (sendEmailConnection.error) {
@@ -64,6 +71,19 @@ exports.Connect = async (req, res) => {
     
         const id = uuid();
         result.value.connectionId = id;
+        const remainingNumberOfConnections = mentor.numberOfConnections - 1
+
+        await db.collection('mentors').updateOne({ "email": req.body.emailMentor }, {
+          $set: {
+            "numberOfConnections": remainingNumberOfConnections
+          }
+        })
+        .then(() => {
+          console.log("Updated mentor number of connections")
+        })
+        .catch(() => {
+          console.error("Did not update mentor number of connections")
+        })
     
         const newConnection = new Connection(result.value);
         await newConnection.save((err) => {
